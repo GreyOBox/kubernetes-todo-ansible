@@ -1,0 +1,20 @@
+---
+
+build_registry:            'CHANGE ME'
+build_registry_login:      'CHANGE ME'
+build_registry_email:      'CHANGE ME'
+build_registry_password:   'CHANGE ME'
+
+build_work_path: /opt/data
+
+build_apps: [ ]
+# - name: Appname
+#   ver: dev-1.0
+#   git_src: 'https://github.com/XXXX/YYY.git'
+#   settings: 'settings.j2'
+#   startup_script: 'start.sh'
+#   dockerfile:
+#     - FROM: xxx
+#     - CMD: yyy
+#   ...
+

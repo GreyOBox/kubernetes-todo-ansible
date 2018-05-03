@@ -1,0 +1,17 @@
+---
+
+- name: Build applications
+  hosts: master
+  become: yes
+
+  roles:
+    - build
+
+
+- name: Deploy applications as Kubernetes services
+  hosts: master
+  become: yes
+
+  roles:
+    - kubservices
+

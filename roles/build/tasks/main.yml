@@ -1,0 +1,46 @@
+---
+
+- name: Create work directory
+  file: state=directory path='{{ build_work_path }}'
+  tags: build
+
+- name: Create apps directories
+  file: state=directory path='{{ build_work_path }}/{{ item.name }}'
+  with_items: '{{ build_apps }}'
+  tags: build
+
+- name: Get app source
+  git: repo='{{ item.git_src }}' dest='{{ build_work_path }}/{{ item.name }}/src'
+  with_items: '{{ build_apps }}'
+  tags: build
+
+- name: Generate Dockerfile
+  template: src=Dockerfile.j2 dest='{{ build_work_path }}/{{ item.name }}/Dockerfile'
+  with_items: '{{ build_apps }}'
+  tags: build
+
+- name: Generate settings file
+  template: src='settings/{{ item.settings }}.j2' dest='{{ build_work_path }}/{{ item.name }}/{{ item.settings }}'
+  with_items: '{{ build_apps }}'
+  when: item.settings is defined
+  tags: build
+
+- name: Generate startup file
+  template: src='startup_scripts/{{ item.startup_script }}.j2' dest='{{ build_work_path }}/{{ item.name }}/{{ item.startup_script }}' mode='0755'
+  with_items: '{{ build_apps }}'
+  when: item.startup_script is defined
+  tags: build
+
+- name: Log into DockerHub
+  docker_login: email='{{ build_registry_email }}' username='{{ build_registry_login }}' password='{{ build_registry_password }}'
+  tags: build
+
+- name: Build app
+  docker_image:
+    path: '{{ build_work_path }}/{{ item.name }}'
+    name: '{{ item.name }}'
+    repository: '{{ build_registry }}/{{ item.name }}'
+    tag: '{{ item.ver }}'
+    push: yes
+  with_items: '{{ build_apps }}'
+  tags: build

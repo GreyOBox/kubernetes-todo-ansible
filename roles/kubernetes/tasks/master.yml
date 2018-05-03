@@ -1,0 +1,12 @@
+---
+
+- name: Initialize master
+  shell: |
+    /usr/bin/kubeadm init --pod-network-cidr='{{ kubernetes_pod_network_cidr }}' --apiserver-advertise-address='{{ kubernetes_master_ip }}' --service-cidr='{{ kubernetes_service_cidr }}'
+  args:
+    creates: /etc/kubernetes/manifests/kube-apiserver.yaml
+
+- name: Create networking
+  shell: '{{ kubernetes_networking_install_cmd }}'
+  args:
+    creates: /etc/cni/net.d/calico-kubeconfig

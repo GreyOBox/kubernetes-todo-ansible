@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: List
+items:
+- kind: Deployment
+  apiVersion: apps/v1
+  metadata:
+    name: {{ item.name }}
+  spec:
+    selector:
+      matchLabels:
+        run: {{ item.name }}
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          run: {{ item.name }}
+      spec:
+        containers:
+          - name: {{ item.name }}
+            env:
+              - name: CONTAINER_PORT
+                value: '{{ item.containerPort }}'
+{% if item.env is defined %}
+{% for i in item.env %}
+              - name: {{ i.name }}
+                value: {{ i.value }}
+{% endfor %}
+{% endif %}
+            image: {{ item.image }}:{{ item.ver }}
+            ports:
+              - containerPort: {{ item.containerPort }}
+                hostPort: {{ item.hostPort }}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: {{ item.name }}
+    labels:
+      run: {{ item.name }}
+  spec:
+    ports:
+      - port: {{ item.hostPort }}
+        protocol: TCP
+    selector:
+      run: {{ item.name }}
+
+{% if item.extPort is defined %}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: {{ item.name }}-ext
+    labels:
+      run: {{ item.name }}
+  spec:
+    selector:
+      run: {{ item.name }}
+    type: NodePort
+    ports:
+      - port: 8000
+        nodePort: {{ item.extPort }}
+{% endif %}
+

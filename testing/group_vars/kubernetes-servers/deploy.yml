@@ -1,0 +1,67 @@
+---
+
+build_registry:            'greyobox'
+build_registry_login:      'greyobox'
+build_registry_email:      'grey-box@yandex.ru'
+# This password and all other private data has to be stored using Ansible Vault
+build_registry_password:   'XXXX'
+
+postgresql_host: postgresql
+postgresql_db: gtd
+postgresql_user: postgres
+postgresql_password: mysecretpassword
+
+
+# Just deploying kubernetes service without Docker building
+deploy_apps:
+  - name: postgresql
+    ver: 9.6
+    image: 'postgres'
+    containerPort: 5432
+    hostPort: 5432
+    env:
+      - name: POSTGRES_PASSWORD
+        value: '{{ postgresql_password }}'
+
+
+# Build app, create image and push to docker registry
+build_apps:
+  - name: django-todo
+    git_src: 'https://github.com/shacker/gtd.git'
+    ver: latest
+    image: 'greyobox/django-todo'
+    containerPort: 8000
+    hostPort: 8000
+    extPort: 30000
+
+    env:
+      - name: POSTGRESQL_HOST
+        value: "'{{ postgresql_host }}'"
+      - name: POSTGRESQL_DB
+        value: "'{{ postgresql_db }}'"
+      - name: POSTGRESQL_USER
+        value: "'{{ postgresql_user }}'"
+      - name: POSTGRESQL_PASSWORD
+        value: "'{{ postgresql_password }}'"
+      - name: SECRET_KEY
+        value: "'123'"
+      - name: DEBUG_MODE
+        value: "'True'"
+
+    settings: 'django-todo.settings'
+    startup_script: 'django-todo.sh'
+
+    dockerfile:
+      - FROM python:3.6
+      - RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' > /etc/apt/sources.list.d/pgdg.list && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && apt-get update && apt-get install -y --no-install-recommends postgresql-client-9.6 postgresql-server-dev-9.6 && rm -rf /var/lib/apt/lists/*
+      - RUN mkdir /src
+      - WORKDIR /src
+      - ADD ./src /src
+      - RUN /usr/local/bin/pip install pipenv django-todo && /usr/local/bin/pipenv install --system --keep-outdated
+      - RUN rm -f /src/project/static/todo && ln -s /usr/local/lib/python3.6/site-packages/todo/static/todo /src/project/static/todo
+      - ADD ./django-todo.settings /src/project/local.py
+      - ADD ./django-todo.sh /src/
+      - CMD /src/django-todo.sh
+
+
+kubservices: '{{ deploy_apps + build_apps }}'

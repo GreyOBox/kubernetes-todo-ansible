@@ -1,0 +1,20 @@
+---
+
+- name: Create services directory
+  file: state=directory path='/etc/kubernetes/services'
+  tags: kubservices
+
+- name: Generate service files
+  template: src=service.yml.j2 dest='/etc/kubernetes/services/{{ item.name }}.yml'
+  register: kubservices_changed
+  with_items: '{{ kubservices }}'
+  tags: kubservices
+
+- name: Create services
+  shell: |
+    /usr/bin/kubectl create -f {{ item.dest }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  with_items: '{{ kubservices_changed.results }}'
+  when: item.changed
+  tags: kubservices

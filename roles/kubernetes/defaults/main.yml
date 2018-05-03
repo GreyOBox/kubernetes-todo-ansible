@@ -1,0 +1,15 @@
+---
+
+kubernetes_apt_key:             'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
+kubernetes_apt_key_id:          '6A030B21BA07F4FB'
+kubernetes_apt_src:             'deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main'
+
+kubernetes_packages:            [ 'apt-transport-https', 'docker.io', 'kubelet', 'kubectl', 'kubeadm', 'kubernetes-cni', 'python-docker' ]
+
+kubernetes_master:              no
+kubernetes_master_ip:           'MASTER SERVER NAME (CHANGE ME)'
+kubernetes_port:                6443
+kubernetes_pod_network_cidr:    '192.168.0.0/16'
+kubernetes_service_cidr:        '10.96.0.0/12'
+
+kubernetes_networking_install_cmd:  'KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml'

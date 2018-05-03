@@ -1,0 +1,14 @@
+---
+
+kubservices: [ ]
+# - name: ServiceName
+#   image: ImageName
+#   containerPort: XXX
+#   hostPort: YYY
+#   env:
+#     - name: Env var name 1
+#       value: Some value
+#     - name: Env var name 2
+#       value:
+#   ...
+#

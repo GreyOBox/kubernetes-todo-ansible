@@ -1,0 +1,7 @@
+#
+# {{ ansible_managed }}
+#
+
+{% for cmd in item.dockerfile %}
+{{ cmd }}
+{% endfor %}

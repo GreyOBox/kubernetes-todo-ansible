@@ -1,0 +1,26 @@
+#!/bin/bash
+
+LOG='/src/startup.log'
+PSQL="psql -h $POSTGRESQL_HOST -U $POSTGRESQL_USER"
+
+export PGPASSWORD="$POSTGRESQL_PASSWORD"
+
+if [ "$( $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname='$POSTGRESQL_DB'" )" = '1' ]; then
+    echo "Database already exists" >> $LOG
+else
+    echo "Database does not exist" >> $LOG
+    $PSQL -c "CREATE DATABASE $POSTGRESQL_DB;" >> $LOG 2>&1
+fi
+
+python --version >> $LOG 2>&1
+echo "pip list" >> $LOG 2>&1
+pip list >> $LOG 2>&1
+
+echo "Run migrations..."  >> $LOG 2>&1
+
+python manage.py migrate >> $LOG 2>&1
+echo "from django.contrib.auth.models import User, Group; group=Group.objects.create(name='Test group'); user=User.objects.create_superuser('test', 'test@example.com', 'test'); user.groups.add(group);" | python manage.py shell >> $LOG 2>/dev/null
+
+echo "Run server..."  >> $LOG 2>&1
+
+python manage.py runserver 0.0.0.0:$CONTAINER_PORT

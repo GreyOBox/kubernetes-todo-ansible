@@ -1,0 +1,45 @@
+---
+
+- name: Create Ansible cache directory
+  file: state=directory path='/var/cache/ansible/'
+  tags: kubernetes
+
+- name: Copy apt source config
+  copy:
+    content: '{{ kubernetes_apt_src }}'
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    owner: root
+    group: root
+    mode: '0644'
+  tags: kubernetes
+
+- name: Add packages.cloud.google.com apt key
+  apt_key: url='{{ kubernetes_apt_key }}' state=present
+  tags: kubernetes
+
+#- name: Add packages.cloud.google.com apt key by id
+#  apt_key: id='{{ kubernetes_apt_key_id }}' keyserver=keyserver.ubuntu.com state=present
+#  tags: kubernetes
+
+- name: Update apt cache
+  apt: update_cache=yes cache_valid_time="{{ apt_cache_valid_time | default(3600) }}"
+  changed_when: false
+  tags: kubernetes
+
+- name: Install requered packages
+  apt: name='{{ item }}' state=present
+  with_items: '{{ kubernetes_packages }}'
+  tags: kubernetes
+
+- name: Configure ip forwarding
+  copy:
+    content: 'net.ipv4.ip_forward=1'
+    dest: '/etc/sysctl.d/40-ip_forward.conf'
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload sysctl
+
+- include_tasks: master.yml
+  when: kubernetes_master
+  tags: kubernetes, kubernetes:master

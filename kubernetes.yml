@@ -1,0 +1,18 @@
+---
+
+- name: Install and configure Kubernetes
+  hosts: kubernetes-servers
+  become: yes
+
+  roles:
+    - kubernetes
+
+
+- name: Join nodes to Kubernetes cluster
+  hosts: kubernetes-nodes
+  become: yes
+
+  tasks:
+    - include_role: name=kubernetes tasks_from=node.yml
+      tags: kubernetes, kubernetes:node, dev
+

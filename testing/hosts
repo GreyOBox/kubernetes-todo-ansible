@@ -1,0 +1,6 @@
+[kubernetes-servers]
+master            ansible_host=10.100.100.111       kubernetes_master=True
+node              ansible_host=10.100.100.112
+
+[kubernetes-nodes]
+node
